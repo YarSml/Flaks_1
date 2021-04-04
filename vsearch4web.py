@@ -6,8 +6,22 @@ app = Flask(__name__)
 
 def log_request(req: 'flask_request', res: str) -> None:
     '''Функция открывает файл и добавляет в него данные.'''
-    with open('vsearch.log', 'a', encoding="utf-8") as log:
-        print(req.form, req.remote_addr, req.user_agent, res, file=log, sep='|')
+    # with open('vsearch.log', 'a', encoding="utf-8") as log:
+    #     print(req.form, req.remote_addr, req.user_agent, res, file=log, sep='|')
+    import mysql.connector
+    dbconfig = {'host': '127.0.0.1','user': 'root', 'password': '12345', 'database': 'vsearchlogDB', }
+    conn = mysql.connector.connect(**dbconfig)
+    cursor = conn.cursor()
+    _SQL = """insert into log (phrase, letters, ip, browser_string, results) values (%s, %s, %s, %s, %s)"""
+    cursor.execute(_SQL, (req.form['phrase'], req.form['letters'], req.remote_addr, req.user_agent.browser, res,))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    # _SQL = """select * from log"""
+    # cursor.execute(_SQL)
+    # for row in cursor.fetchall():
+    #     print(row)
+
 
 
 @app.route('/search4', methods=['POST'])
