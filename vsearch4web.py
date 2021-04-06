@@ -3,7 +3,7 @@ from vsearch import search4letters
 from DBcm import UseDatabase
 
 app = Flask(__name__)
-app.config['dbconfig'] = {'host': '127.0.0.1','user': 'root', 'password': '12345',
+app.config['dbconfig'] = {'host': '127.0.0.1', 'user': 'root', 'password': '12345',
                           'database': 'vsearchlogDB', }
 
 
@@ -30,7 +30,7 @@ def do_search() -> 'html':
                            the_phrase=phrase,
                            the_letters=letters,
                            the_title=title,
-                           the_results=results,)
+                           the_results=results, )
 
 
 @app.route('/')
@@ -44,17 +44,16 @@ def entry_page() -> 'html':
 @app.route('/viewlog')
 def view_the_log() -> 'html':
     '''Вывод в браузере данных в лог файле'''
-    with open('vsearch.log') as log:
-        contents = []
-        for line in log:
-            contents.append([])
-            for i in line.split('|'):
-                contents[-1].append(escape(i))
-    titles = ('Form Data', 'Remote_addr', 'User_agent', 'Results')
+    with UseDatabase(app.config['dbconfig']) as cursor:
+        _SQL = """select phrase, letters, ip, browser_string,
+             results from log"""
+        cursor.execute(_SQL)
+        contents = cursor.fetchall()
+    titles = ('Phrase', 'Letters', 'Remote_addr', 'User_agent', 'Results')
     return render_template('viewlog.html',
-                           the_title = 'View Log',
-                           the_row_titles = titles,
-                           the_data = contents)
+                           the_title='View Log',
+                           the_row_titles=titles,
+                           the_data=contents)
 
 
 if __name__ == '__main__':
